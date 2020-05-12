@@ -1,85 +1,79 @@
-//HASSAAN ASIF & TANVIR AHMAD
-// CISC 3130
+//CISC 3130 
+// HASSAAN ASIF/TANVIR AHMAD
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class MyApp {
 
-	// Attributes..
-	private final static String FILENAME = "data/usdataweek4.csv";
-	
 	// Main method.
 	public static void main(String[] args) {
 
-		// Attributes..
-		int rows = 200;
-		int cols = 4;
-		String[][] myList = new String[rows][cols];
-		int[] count = new int[rows];
-		int index = 0;
+		String[] files = {"data/usdataweek3.csv", "data/usdataweek4.csv",
+				"data/usdataweek5.csv"};
+		ArrayList<MyQueue> allWeekQueues = new ArrayList<>();
+		for(int i = 0; i < files.length; i++) {
+			
+			MyQueue queue = new MyQueue(files[i]);
+			allWeekQueues.add(queue);
 		
-		// Reading the file.
-		try {
+		}
+		// Creating play list.
+		Playlist playlist = new Playlist();
+		// Creating play list history.
+		SongHistoryList history = new SongHistoryList();
+		// merging all queues in 1 queue.
+		MyQueue completeQueue = new MyQueue();
+		for(int i = 0; i < allWeekQueues.size(); i++) {			
 		
-			Scanner scan = new Scanner(new File(FILENAME));
-			scan.nextLine();
-			scan.nextLine();
-			// reading.
-			while(scan.hasNextLine()) {
-				
-				String[] tokens = scan.nextLine().split(",");
-				String artist = tokens[2];
-				artist = artist.replaceAll("\"", "").trim();
-				artist = artist.substring(0, 1).toUpperCase()+artist.substring(1);
-				boolean found = false;
-				for(int i = 0; i < index; i++) {
-					if(artist.equals(myList[i][1])) {
-						count[i]++;
-						found = true;
-						break;
-					}
+			completeQueue = MyQueue.mergingFunction(completeQueue, allWeekQueues.get(i));			
+		
+		}
+		// adding songs to play list.
+		int size = completeQueue.size();
+		for(int i = 0; i < size; i++) {
+		
+			Song song = completeQueue.removeFirst();
+			playlist.addSong(song);
+		
+		}
+		
+		Scanner scan = new Scanner(System.in);
+		while(true) {
+			
+			System.out.print("** Menu **\n"
+					+ "1: Play Song\n"
+					+ "2: Last Played Song\n"
+					+ "3: Exit\n"
+					+ "Your Option: ");
+			int option = scan.nextInt();
+			if(option == 1) {
+			
+				Song song = playlist.listenToSong();
+				history.addSong(new Song(song.getTrack()));
+				System.out.println("Listing to song: "+song.getTrack());
+			
+			} else if(option == 2) {
+			
+				Song song = history.lastListened();
+				String data = "";
+				if(song != null) {
+					data = song.getTrack();
 				}
-				if(!found) {
-					myList[index][0] = tokens[1];
-					myList[index][1] = artist;
-					myList[index][2] = tokens[3];
-					myList[index][3] = tokens[4];
-					index++;
-				}
-				
+				System.out.println("Last Listened Song: "+data);
+			
+			} else if(option == 3) {
+			
+				break;
+			
+			} else {
+			
+				System.out.println("Select correct option.");
+			
 			}
-			scan.close();
-			
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		
-		// finding top streamed.  
-		String topArtist = "";
-		int topCount = -1;
-		for(int i = 0; i < index; i++) {
-			if(count[i] > topCount) {
-				topArtist = myList[i][1];
-				topCount = count[i];
-			}
-		}
-		System.out.println("*** Top Streamed Person ***\n"
-				+ "Artist: "+topArtist+"\n"
-				+ "Count: "+topCount+"\n\n"
-				+ "*** Music Artist in Alphabetical Order ***");
-		
-		
-		// Reading complete.
-		TopStreamingArtists artists = new TopStreamingArtists();
-		// adding..
-		for(int i = 0; i < index; i++) {
-			
-			artists.addArtist(new Artist(myList[i][1]));
 			
 		}
-		artists.displayList();
+		scan.close();
 		
 	}
 
