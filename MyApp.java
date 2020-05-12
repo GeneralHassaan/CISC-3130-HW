@@ -1,86 +1,74 @@
-//HASSAAN ASIF & TANVIR AHMAD
-// CISC 3130
+//HASSAAN/TANVIR
+//CISC 3130
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Scanner;
+import java.util.Set;
 
 public class MyApp {
 
-	// Attributes..
-	private final static String FILENAME = "data/usdataweek4.csv";
-	
 	// Main method.
 	public static void main(String[] args) {
 
-		// Attributes..
-		int rows = 200;
-		int cols = 4;
-		String[][] myList = new String[rows][cols];
-		int[] count = new int[rows];
-		int index = 0;
-		
+		// BST.
+		MovieBST bst = new MovieBST();
+		String filename = "data/movies.csv";
 		// Reading the file.
+		String[] tokens = null;
 		try {
-		
-			Scanner scan = new Scanner(new File(FILENAME));
-			scan.nextLine();
+
+			Scanner scan = new Scanner(new File(filename));
 			scan.nextLine();
 			// reading.
-			while(scan.hasNextLine()) {
-				
-				String[] tokens = scan.nextLine().split(",");
-				String artist = tokens[2];
-				artist = artist.replaceAll("\"", "").trim();
-				artist = artist.substring(0, 1).toUpperCase()+artist.substring(1);
-				boolean found = false;
-				for(int i = 0; i < index; i++) {
-					if(artist.equals(myList[i][1])) {
-						count[i]++;
-						found = true;
-						break;
-					}
+			while (scan.hasNextLine()) {
+
+				try {
+					tokens = split(scan.nextLine());
+					int id = Integer.parseInt(tokens[0]);
+					String name = tokens[1];
+					name = name.replaceAll("\"", "").trim();
+					int year = Integer.parseInt(name.substring(name.lastIndexOf('(') + 1, name.length() - 1));
+					name = name.substring(0, name.lastIndexOf(' '));
+					Movie movie = new Movie(id, name, year);
+					bst.add(movie);
+
+				} catch (Exception e) {
 				}
-				if(!found) {
-					myList[index][0] = tokens[1];
-					myList[index][1] = artist;
-					myList[index][2] = tokens[3];
-					myList[index][3] = tokens[4];
-					index++;
-				}
-				
+
 			}
 			scan.close();
-			
-		} catch (FileNotFoundException e) {
+
+		} catch (Exception e) {
+			System.out.println(Arrays.toString(tokens));
 			e.printStackTrace();
 		}
-		
-		// finding top streamed.  
-		String topArtist = "";
-		int topCount = -1;
-		for(int i = 0; i < index; i++) {
-			if(count[i] > topCount) {
-				topArtist = myList[i][1];
-				topCount = count[i];
-			}
+		// Reading complete..
+		Set<String> values = bst.subSet("Back to the Future", "Hulk");
+		Iterator<String> iterator = values.iterator();
+		while (iterator.hasNext()) {
+			System.out.println(iterator.next());
 		}
-		System.out.println("*** Top Streamed Person ***\n"
-				+ "Artist: "+topArtist+"\n"
-				+ "Count: "+topCount+"\n\n"
-				+ "*** Music Artist in Alphabetical Order ***");
+
+	}
+
+	public static String[] split(String data) {
 		
-		
-		// Reading complete.
-		TopStreamingArtists artists = new TopStreamingArtists();
-		// adding..
-		for(int i = 0; i < index; i++) {
-			
-			artists.addArtist(new Artist(myList[i][1]));
-			
+		ArrayList<String> tokens = new ArrayList<String>();
+		boolean isComma = true;
+		int start = 0;
+		for (int i = 0; i < data.length() - 1; i++) {
+			if (data.charAt(i) == ',' && isComma) {
+				tokens.add(data.substring(start, i));
+				start = i + 1;
+			} else if (data.charAt(i) == '"')
+				isComma = !isComma;
 		}
-		artists.displayList();
-		
+		tokens.add(data.substring(start));
+		return tokens.toArray(new String[] {});
+	
 	}
 
 }
